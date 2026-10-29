@@ -1,16 +1,26 @@
 #!/bin/bash
 # Run a video-short script in its own venv (numpy).
 # Override the location with VIDEO_SHORT_VENV.
+# Works in macOS and Linux shells and in Git Bash on Windows, where a venv keeps python in Scripts/, not bin/.
 V="${VIDEO_SHORT_VENV:-$HOME/.cache/video-short/venv}"
-PY="$V/bin/python"
-[ -x "$V/Scripts/python.exe" ] && PY="$V/Scripts/python.exe"   # Windows venvs put Python in Scripts/
+py_in() { if [ -x "$1/Scripts/python.exe" ]; then echo "$1/Scripts/python.exe"; else echo "$1/bin/python"; fi; }
+PY="$(py_in "$V")"
 if [ ! -x "$PY" ]; then
   if command -v uv >/dev/null; then uv venv -q -p 3.12 "$V" || exit 1
-  else python3 -m venv "$V" || exit 1; fi
-  [ -x "$V/Scripts/python.exe" ] && PY="$V/Scripts/python.exe"
+  else
+    # On Windows "python3" is often the Microsoft Store stub, so prefer "python" when it really runs.
+    BASE=python3; python -c "import sys" >/dev/null 2>&1 && ! python3 -c "import sys" >/dev/null 2>&1 && BASE=python
+    "$BASE" -m venv "$V" || exit 1
+  fi
+  PY="$(py_in "$V")"
 fi
 if ! "$PY" -c "import numpy" 2>/dev/null; then
-  if command -v uv >/dev/null; then uv pip install -q -p "$PY" numpy || exit 1
-  else "$PY" -m pip install -q --disable-pip-version-check numpy || exit 1; fi
+  # A uv venv has no pip, and some setups wrap uv so that "uv pip" refuses to run: fall back to ensurepip + pip.
+  if ! { command -v uv >/dev/null && uv pip install -q -p "$PY" numpy 2>/dev/null; }; then
+    "$PY" -m pip --version >/dev/null 2>&1 || "$PY" -m ensurepip >/dev/null 2>&1 || exit 1
+    "$PY" -m pip install -q --disable-pip-version-check numpy || exit 1
+  fi
 fi
+# UTF-8 for files and console output: Windows otherwise defaults to cp1252 and fails on characters like "·".
+export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 exec "$PY" "$@"

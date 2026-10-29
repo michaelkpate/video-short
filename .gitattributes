@@ -1,0 +1,4 @@
+# Shell scripts keep LF line endings on every checkout, including Windows with core.autocrlf=true,
+# where CRLF would make bash fail with "$'\r': command not found".
+*.sh text eol=lf
+skills/video-short/scripts/py text eol=lf

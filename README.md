@@ -74,6 +74,12 @@ I've made this skill as simple as possible to use, just follow these 4 steps:
 
 Each render saves a new version, so you can compare `v1` and `v2`, plus a small 720p copy in `renders/share/` to send from your phone or email.
 
+The review page also works for any other video, such as a music video or a lyric video: ask your agent to review it with `review_video.py`, which splits the timeline by lyric lines (`.lrc`), subtitle cues (`.srt`, `.vtt`), your own scene list (`.json`), or fixed-length bands. See [`reference.md`](skills/video-short/reference.md#review-any-video).
+
+## Windows
+
+Run the skill's scripts from Git Bash. `setup.sh` prints `winget` commands for anything missing (FFmpeg, yt-dlp, Node.js, Python), and the scripts handle Windows paths, `npx.cmd`, and UTF-8 text.
+
 ## Make it yours
 
 Fonts, colors, and caption style come from a small `style.json`. Save yours at `~/.config/video-short/style.json` and every short uses it. The keys are in [`reference.md`](skills/video-short/reference.md).
@@ -83,7 +89,7 @@ Fonts, colors, and caption style come from a small `style.json`. Save yours at `
 - [`SKILL.md`](skills/video-short/SKILL.md) contains the editing rules and workflow.
 - [`reference.md`](skills/video-short/reference.md) contains the commands, the `edit.md` format, graphics, and style options.
 - [`eval.md`](skills/video-short/eval.md) contains the checks the skill runs before handing back a video.
-- [`scripts/`](skills/video-short/scripts) contains the scripts for setup, transcription, cutting, generation, rendering, the review page, and QA.
+- [`scripts/`](skills/video-short/scripts) contains the scripts for setup, transcription, cutting, generation, rendering, the review page (for Shorts and for any video), and QA.
 
 ## Want more great AI skills?
 

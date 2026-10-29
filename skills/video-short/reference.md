@@ -1,6 +1,6 @@
 # Video Short reference
 
-Set `S` to this skill's `scripts` folder and `P` to the project folder. Run every Python script through `$S/py`, which creates a venv at `~/.cache/video-short/venv` with numpy. HyperFrames runs through `npx`, pinned to version 0.8.169; `setup.sh` downloads its headless Chrome and the Parakeet speech model, about 1 GB together.
+Set `S` to this skill's `scripts` folder and `P` to the project folder. Run every Python script through `$S/py`, which creates a venv at `~/.cache/video-short/venv` with numpy. HyperFrames runs through `npx`, pinned to version 0.8.169; `setup.sh` downloads its headless Chrome and the Parakeet speech model, about 1 GB together. On Windows, run the commands from Git Bash: `setup.sh` prints `winget` install commands, and `py` finds the venv's `Scripts/python.exe` and runs Python in UTF-8 mode.
 
 ```bash
 S=/path/to/video-short/scripts
@@ -36,6 +36,20 @@ $S/py $S/review.py "$P"            # later rounds: --no-open, the open page relo
 $S/py $S/render.py "$P"
 $S/py $S/qa.py "$P"
 ```
+
+## Review any video
+
+`review_video.py` puts any video, not only a Short from this skill, on the same review page: a music video, a lyric video, a client cut. It needs only Python and ffmpeg, so it runs without the venv. Run it in the background like `review.py` and wait for it to print the notes.
+
+```bash
+V="$HOME/Videos/song-v3.mp4"
+$S/py $S/review_video.py "$V" --scenes "$HOME/Videos/song.lrc"   # one band per lyric line
+$S/py $S/review_video.py "$V" --scenes cues.srt                  # or .vtt: one band per cue
+$S/py $S/review_video.py "$V" --scenes scenes.json               # your own bands
+$S/py $S/review_video.py "$V" --every 8                          # no file: 8-second bands
+```
+
+`scenes.json` is a list of `{"start", "end"}` with an optional `id`, a short `label` shown in the scene chip, and `text` quoted in the notes. Gaps between cues become unlabelled bands, so the bands always cover the whole video. Notes go to `<video name>-review/feedback.md` beside the video, with a still of each commented frame in `review-frames/`; `--out DIR` moves them, on the video's drive. After re-rendering to the same path, run it again with `--no-open` and the open page reloads itself.
 
 `render.py` builds the HyperFrames project in `hf/`, renders it, adds the audio mix, and saves the next version in `renders/`, plus a 720p copy under 10 MB or so in `renders/share/` for phones, chat, and email. A draft takes as long as a final; `--draft` only lowers encoding quality. `review.py` reviews the newest render unless you pass a video, saves notes to `work/feedback.md` with a still of each commented frame in `work/review-frames/`, and uses port 8791 or any free port. `render.py` and `cut.py` accept `--style FILE`; `qa.py` checks the newest render unless you pass a video.
 

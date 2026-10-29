@@ -111,7 +111,7 @@ SCENES.forEach((s) => {
   const b = document.createElement("div");
   b.className = "band"; b.dataset.id = s.id; b.textContent = short(s.id);
   b.style.left = (s.start / DUR) * 100 + "%"; b.style.width = ((s.end - s.start) / DUR) * 100 + "%";
-  b.title = `${short(s.id)} · ${s.layout} · ${s.visual}\n“${s.spoken}”`;
+  b.title = [short(s.id), s.layout, s.visual].filter(Boolean).join(" · ") + (s.spoken ? `\n“${s.spoken}”` : "");
   bar.appendChild(b);
 });
 const fitLabels = () => document.querySelectorAll(".band").forEach((b) => b.classList.toggle("nolabel", b.offsetWidth < 34));
@@ -121,7 +121,7 @@ const seek = (t) => { v.currentTime = Math.max(0, Math.min(DUR - 0.001, t)); };
 function tick() {
   const t = v.currentTime, s = sceneAt(t);
   $("tc").innerHTML = `${fmt(t)} <span>/ ${fmt(DUR)}</span>`;
-  $("scene").textContent = `${short(s.id)} · ${s.layout}`;
+  $("scene").textContent = [short(s.id), s.layout].filter(Boolean).join(" · ");
   $("at").textContent = `${fmt(t)} · ${short(s.id)}`;
   $("head").style.left = (t / DUR) * 100 + "%";
   document.querySelectorAll(".band").forEach((b) => b.classList.toggle("cur", b.dataset.id === s.id));
@@ -248,10 +248,15 @@ def probe(video):
     return float(info["format"]["duration"]), round(int(num) / int(den))
 
 
+def url_path(path, root):
+    """path as a URL path under root, with forward slashes on Windows too. path must sit on root's drive."""
+    return os.path.relpath(path, root).replace(os.sep, "/")
+
+
 def write_page(root, page, video, scenes):
     """Write the review page for video. scenes: [{id, start, end, layout, visual, spoken}] covering the whole video."""
     dur, fps = probe(video)
-    src = "/" + os.path.relpath(video, root) + f"?v={int(os.path.getmtime(video))}"
+    src = "/" + url_path(video, root) + f"?v={int(os.path.getmtime(video))}"
     os.makedirs(os.path.dirname(page), exist_ok=True)
     open(page, "w", encoding="utf-8").write(PAGE.format(css=CSS, js=JS, src=html.escape(src), scenes=json.dumps(scenes), dur=dur, fps=fps))
 
@@ -277,8 +282,10 @@ def notes_markdown(data, scenes, video, frames=None):
     lines = [f"# Review notes: {os.path.basename(video)}", ""]
     for i, c in enumerate(data.get("comments", [])):
         s = by_id.get(c["scene"], {})
-        lines += [f"## {fmt(c['t'])} · {short(c['scene'])} ({s.get('layout', '')}, {s.get('visual', '')})",
-                  f"Says: “{s.get('spoken', '')}”"] + ([f"Frame: {frames[i]}"] if i in frames else []) + ["", c["note"], ""]
+        detail = ", ".join(x for x in (s.get("layout"), s.get("visual")) if x)   # scenes outside a Short may have neither
+        lines += [f"## {fmt(c['t'])} · {short(c['scene'])}" + (f" ({detail})" if detail else "")]
+        lines += [f"Says: “{s['spoken']}”"] if s.get("spoken") else []
+        lines += ([f"Frame: {frames[i]}"] if i in frames else []) + ["", c["note"], ""]
     if data.get("overall"):
         lines += ["## Overall", data["overall"], ""]
     if len(lines) == 2:
@@ -354,7 +361,7 @@ def serve(root, page, feedback, scenes, video, port, open_browser, timeout):
         server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     except OSError:   # port busy: use any free one, and open the page since the old tab can't find it
         server, open_browser = ThreadingHTTPServer(("127.0.0.1", 0), Handler), True
-    url = f"http://127.0.0.1:{server.server_port}/" + os.path.relpath(page, root)
+    url = f"http://127.0.0.1:{server.server_port}/" + url_path(page, root)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     print(f"Review page: {url}\nWaiting for Send (saves {feedback})...", flush=True)
     if open_browser:

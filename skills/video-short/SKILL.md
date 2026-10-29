@@ -1,6 +1,6 @@
 ---
 name: video-short
-description: "Turn a raw talking-head recording into a finished 1080x1920 Short, Reel, or TikTok with B-roll, motion graphics, captions, and music. Shows the plan in chat, then iterates on drafts the user comments on frame by frame. Use when someone wants to edit a raw recording into a vertical video or add captions, B-roll, or motion graphics to one."
+description: "Turn a raw talking-head recording into a finished 1080x1920 Short, Reel, or TikTok with B-roll, motion graphics, captions, and music. Shows the plan in chat, then iterates on drafts the user comments on frame by frame. Use when someone wants to edit a raw recording into a vertical video or add captions, B-roll, or motion graphics to one, or to review any video (a music or lyric video, a render) by commenting on its frames."
 ---
 
 # Video Short
@@ -10,6 +10,8 @@ Input: a raw talking-head recording. Output: `renders/<project>-vN.mp4` at 1080x
 You make every editorial call; the scripts measure, render, and serve the review page. Commands, the `edit.md` format, graphics, and style keys live in [reference.md](reference.md).
 
 On first use, run `setup.sh`. If it lists missing tools, tell the user Video Short needs them and offer to install them with the commands it prints. A Gemini API key with billing enabled is optional, for generated images, video, and music. Ask the user to save it in `~/.config/video-short/.env` rather than paste it into chat.
+
+To review a video that is not a Short made here, such as a music or lyric video, skip the steps below: run `review_video.py` in the background (see "Review any video" in reference.md), then look at each note's frame and act on it.
 
 ## 1. Cut
 
